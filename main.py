@@ -1,7 +1,7 @@
 import sys
 from PyQt5.uic import loadUi
 from PyQt5 import QtWidgets
-from PyQt5.QtWidgets import QDial, QDialog, QApplication, QStackedWidget, QFileDialog
+from PyQt5.QtWidgets import QDial, QDialog, QApplication, QStackedWidget, QFileDialog, QMessageBox
 from hashlib import sha1
 from RSA import *
 
@@ -9,6 +9,7 @@ from RSA import *
 def goBack():
     # widget.setCurrentIndex(widget.currentIndex() - 1)
     widget.removeWidget(widget.currentWidget())
+
 
 # ---------------------------------HOME---------------------------------
 class HomeScreen(QDialog):
@@ -47,6 +48,14 @@ class KeyGenScreen(QDialog):
         self.loadEKey.clicked.connect(self.load_public_key)
         self.loadDKey.clicked.connect(self.load_private_key)
         self.backButton.clicked.connect(goBack)
+
+    def warning_msg(self,title, msg):
+        temp = msg
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Warning)
+        msg.setText(str(title))
+        msg.setInformativeText(temp)
+        msg.exec_()
 
     def generate_key(self):
         self.RSA.generate_key()
@@ -113,6 +122,14 @@ class signScreen(QDialog):
         self.nKey.setReadOnly(False)
         self.dKey.setReadOnly(False)
 
+    def warning_msg(self,title, msg):
+        temp = msg
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Warning)
+        msg.setText(str(title))
+        msg.setInformativeText(temp)
+        msg.exec_()
+
     def browseInput(self):
         f = QFileDialog.getOpenFileName(
             self, 'Open file', '~/Faisal Helmi/Desktop')
@@ -176,12 +193,10 @@ class signScreen(QDialog):
     def getMessage(self):
         if (self.fileInputMethod == "File"):
             path = self.inputFileField.text()
-            f = open(path, "r")
-            self.message = f.read()
-            f.close()
+            self.message = self.RSA.readfile_bin(path)
         else:
             self.message = self.inputKeyboardField.text()
-        self.message = self.message.rstrip()
+        self.message = self.message
 
     def getKey(self):
         self.key = (
@@ -197,8 +212,8 @@ class signScreen(QDialog):
         self.getMessage()
         self.getKey()
         self.getOutputPath()
-
-        hashed = int(sha1(self.message.encode()).hexdigest(), 16)
+        hashing = ''.join(x for x in self.message)
+        hashed = int(sha1(hashing.encode()).hexdigest(), 16)
 
         signature = self.RSA.rsa_sign(hashed, self.key[1], self.key[0])
 
@@ -244,6 +259,14 @@ class verifyScreen(QDialog):
     def toggleSeparateFile(self): self.btnInputState(self.SeparateFile)
 
     def toggleInsideFile(self): self.btnInputState(self.InsideFile)
+
+    def warning_msg(self,title, msg):
+        temp = msg
+        msg = QMessageBox()
+        msg.setIcon(QMessageBox.Warning)
+        msg.setText(str(title))
+        msg.setInformativeText(temp)
+        msg.exec_()
 
     def browseInputMessage(self):
         f = QFileDialog.getOpenFileName(self, 'Open File', 'Output/')
@@ -299,6 +322,8 @@ class verifyScreen(QDialog):
         hashed = int(sha1(self.message.encode()).hexdigest(), 16)
 
         if (self.nKey.text() != "" and self.eKey.text() != ""):
+            print(self.signature)
+            print()
             verify = self.RSA.rsa_verify(self.signature, self.key[1], self.key[0], hashed)
 
             if verify:

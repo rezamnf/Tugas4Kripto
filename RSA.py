@@ -65,15 +65,16 @@ class RSA:
         return res	
 
     def rsa_verify(self, pt, e, n, h):
+        print(pt)
         temp = int(pt, 16)
         res = (pow(temp, e, n))
         return res == h
 
     def save_eof(self, res, fname):
-        with open(fname, "a") as f:
-            f.write("\n*** Begin of digital signature ****\n")
-            f.write(str(res) + "\n")
-            f.write("*** End of digital signature ****\n")
+        with open(fname, "ab") as f:
+            f.write(b"\n*** Begin of digital signature ****\n")
+            f.write((str(res) + "\n").encode('utf-8'))
+            f.write(b"*** End of digital signature ****\n")
         f.close()
 
     def save_nf(self, res, fname):
@@ -83,48 +84,83 @@ class RSA:
             f.write("*** End of digital signature ****\n")
         f.close()
 
+    def writefile_bin(self, filename: str="output.png", content: str=""):
+    # Menulis biner ke dalam file
+        from pathlib import Path
+
+        path = filename
+        
+        with open(path, 'wb') as file:
+            bytes = []
+            for char in content:
+                byte = int.to_bytes(ord(char), 1, "big")
+                bytes.append(byte)
+            file.write(b"".join(bytes))
+
     def read_eof(self, path):
         m_text = ""
-        r = ""
-        s = ""
+        content = ''
         signature = False
-        f = open(path, "r")
-        for line in f:
+        f = self.readfile_bin(path)
+        for line in f:   
             if (not signature):
-                if line == ("*** Begin of digital signature ****\n"):
+                if line == ("*** Begin of digital signature ****"):
                     signature = True
                 else:
                     m_text += (line)
             else:
                 content = line.rstrip()
+                
                 break
-        return (m_text.rstrip(), content)
+        return m_text.rstrip(), content
 
 
     def read_nf(self, path_m, path_sign):
         m_text = self.read_m_separate(path_m)
         content = self.read_sign_separate(path_sign)
-        return (m_text.rstrip(), content)
+        return (m_text, content)
 
+    def readfile_bin(self, filename: str = "blue.png"):
+    # Membaca file menjadi biner
+        from pathlib import Path
+        path = filename
+        
+        with open(path, 'rb') as file:
+            temp = []
+            byte = file.read(1)
+            while byte:
+                temp.append(int.from_bytes(byte, "big"))
+                byte = file.read(1)
+            
+            temp = [bin(bits)[2:] for bits in temp]
+            result = []
+            for e in temp:
+                if len(e) < 8:
+                    e = (8 - len(e)) * "0" + e
+                result.append(e)
+            msg = ""
+            for e in result:
+                msg += chr(int(e, 2))
+
+            return "".join(msg).splitlines()
 
     def read_m_separate(self, path):
         m_text = ""
-        f = open(path, "r")
+        f = self.readfile_bin(path)
         for line in f:
             m_text += line
-        return m_text
-
+        
+        return m_text.rstrip()
 
     def read_sign_separate(self, path):
-        r = ""
-        s = ""
         signature = False
-        f = open(path, "r")
+        content = ''
+        f = self.readfile_bin(path)
         for line in f:
             if (not signature):
-                if line == ("*** Begin of digital signature ****\n"):
-                    signature = True
+                if line == ("*** Begin of digital signature ****"):
+                    signature = True                    
             else:
                 content = line.rstrip()
-                break
-        return (content)
+                break       
+        return content
