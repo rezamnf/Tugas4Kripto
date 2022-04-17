@@ -65,7 +65,6 @@ class RSA:
         return res	
 
     def rsa_verify(self, pt, e, n, h):
-        print(pt)
         temp = int(pt, 16)
         res = (pow(temp, e, n))
         return res == h
