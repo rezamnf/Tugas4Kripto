@@ -322,12 +322,14 @@ class verifyScreen(QDialog):
         hashed = int(sha1(self.message.encode()).hexdigest(), 16)
 
         if (self.nKey.text() != "" and self.eKey.text() != ""):
-            verify = self.RSA.rsa_verify(self.signature, self.key[1], self.key[0], hashed)
-
-            if verify:
-                self.Status.setText('Verified!')
+            if self.signature != "":
+                verify = self.RSA.rsa_verify(self.signature, self.key[1], self.key[0], hashed)
+                if verify:
+                    self.Status.setText('Verified!')
+                else:
+                    self.Status.setText('Unverified!')
             else:
-                self.Status.setText('Unverified!')
+                self.Status.setText('Signature not found!')
         else:
             self.Status.setText('Signature not found!')
 

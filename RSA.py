@@ -109,7 +109,6 @@ class RSA:
                     m_text += (line)
             else:
                 content = line.rstrip()
-                
                 break
         return m_text.rstrip(), content
 
