@@ -70,7 +70,7 @@ class RSA:
         return res == h
 
     def save_eof(self, res, fname):
-        with open(fname, "ab") as f:
+        with open("" + fname, "ab") as f:
             f.write(b"\n*** Begin of digital signature ****\n")
             f.write((str(res) + "\n").encode('utf-8'))
             f.write(b"*** End of digital signature ****\n")
